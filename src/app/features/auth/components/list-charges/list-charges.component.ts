@@ -21,6 +21,7 @@ import {ReactiveFormsModule, FormGroup, FormControl} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {Router} from '@angular/router';
 
 @Component({
   standalone: true,
@@ -62,7 +63,8 @@ export class ListChargesComponent implements OnInit {
   constructor(
     private readonly http: HttpClient,
     private readonly dialog: MatDialog,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly router: Router,
   ) {
   }
 
@@ -85,6 +87,10 @@ export class ListChargesComponent implements OnInit {
       width: '600px',
       data: charge
     });
+  }
+
+  openCheckout(url: any): void {
+    window.open(url, '_blank');
   }
 
   getList(filters: any = {}): void {

@@ -84,6 +84,15 @@
           >
             Liquidar
           </button>
+
+          <button
+            mat-flat-button
+            color="primary"
+            (click)="openCheckout(element.linkCheckout)"
+            [disabled]="!element?.linkCheckout || isLoading"
+          >
+            Checkout
+          </button>
         </td>
       </ng-container>
 
