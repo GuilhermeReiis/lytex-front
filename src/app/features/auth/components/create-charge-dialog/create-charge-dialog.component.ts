@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, ChangeDetectorRef} from '@angular/core';
 import {MatDialogRef} from '@angular/material/dialog';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -12,7 +12,7 @@ import {
   FormArray
 } from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatButtonModule, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {MatSelectModule} from '@angular/material/select';
 import {environment} from '../../../../../environments/environment';
@@ -20,18 +20,9 @@ import {HttpClient} from '@angular/common/http';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MAT_DATE_LOCALE, provideNativeDateAdapter} from '@angular/material/core';
-
-export const MY_DATE_FORMATS = {
-  parse: {
-    dateInput: 'DD/MM/YYYY',
-  },
-  display: {
-    dateInput: 'DD/MM/YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'LL',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {finalize} from 'rxjs';
+import Swal from 'sweetalert2';
 
 type PaymentMethod = 'pix' | 'ticket' | 'credit_card';
 
@@ -45,12 +36,13 @@ type PaymentMethod = 'pix' | 'ticket' | 'credit_card';
     MatInputModule,
     ReactiveFormsModule,
     MatCardModule,
-    MatButton,
+    MatButtonModule,
     MatIconButton,
     MatIcon,
     MatSelectModule,
     MatCheckboxModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    MatProgressSpinnerModule
   ],
   providers: [provideNativeDateAdapter(), {provide: MAT_DATE_LOCALE, useValue: 'pt-BR'}],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,64 +54,57 @@ export class CreateChargeDialogComponent implements OnInit {
     {value: 'credit_card', label: 'Cartão de crédito'}
   ];
 
-  clientOptions: {
-    id: string;
-    name: string;
-  }[] = []
+  clientOptions: { id: string; name: string }[] = [];
+  productOptions: { id: string; name: string; value: number }[] = [];
 
-  productOptions: {
-    id: string;
-    name: string;
-    value: number;
-  }[] = []
+  isLoading = false;
+  minDate = new Date();
 
-  chargeForm = new FormGroup({
-    clientId: new FormControl('', [Validators.required]),
+  readonly chargeForm = new FormGroup({
+    clientId: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
     products: new FormArray([
       new FormGroup({
-        _productId: new FormControl('', [Validators.required]),
+        _productId: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
         name: new FormControl(''),
-        quantity: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
-        value: new FormControl<number>(0, [Validators.required, Validators.min(2)])
+        quantity: new FormControl<number>(1, {nonNullable: true, validators: [Validators.required, Validators.min(1)]}),
+        value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(2)]})
       })
-    ], [this.uniqueProductValidator.bind(this)]),
-    dueDate: new FormControl('', [Validators.required]),
+    ], {validators: [this.uniqueProductValidator.bind(this)]}),
+    dueDate: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
     paymentMethod: new FormGroup({
-      pix: new FormControl(false),
-      boleto: new FormControl(false),
-      creditCard: new FormControl(false),
-    }, [this.atLeastOnePaymentMethodValidator]),
+      pix: new FormControl(false, {nonNullable: true}),
+      boleto: new FormControl(false, {nonNullable: true}),
+      creditCard: new FormControl(false, {nonNullable: true}),
+    }, {validators: [this.atLeastOnePaymentMethodValidator]}),
   });
 
-  atLeastOnePaymentMethodValidator(control: AbstractControl): ValidationErrors | null {
-    const methods = control.value;
-    if (!methods) return null;
-    const hasAtLeastOne = methods.pix || methods.boleto || methods.creditCard;
-    return hasAtLeastOne ? null : {required: true};
+  constructor(
+    private readonly http: HttpClient,
+    private readonly dialogRef: MatDialogRef<CreateChargeDialogComponent>,
+    private readonly cdr: ChangeDetectorRef
+  ) {
   }
 
-  constructor(private readonly http: HttpClient, private readonly dialogRef: MatDialogRef<CreateChargeDialogComponent>) {
-  }
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.getClientOptions();
-    this.getProductOptions()
+    this.getProductOptions();
   }
 
-  close() {
+  close(): void {
     this.dialogRef.close();
   }
 
-  confirm() {
+  confirm(): void {
     if (this.chargeForm.invalid) {
       this.chargeForm.markAllAsTouched();
       return;
     }
-
     this.createInvoice();
   }
 
-  createInvoice() {
+  private createInvoice(): void {
+    this.isLoading = true;
+
     const url = `${environment.apiUrl}/invoice`;
     const rawValue = this.chargeForm.getRawValue();
 
@@ -134,81 +119,80 @@ export class CreateChargeDialogComponent implements OnInit {
       items: rawValue.products,
       dueDate: formattedDueDate,
       paymentMethods: {
-        pix: {
-          enable: rawValue.paymentMethod.pix
-        },
-        boleto: {
-          enable: rawValue.paymentMethod.boleto
-        },
-        creditCard: {
-          enable: rawValue.paymentMethod.creditCard
-        },
+        pix: {enable: rawValue.paymentMethod.pix},
+        boleto: {enable: rawValue.paymentMethod.boleto},
+        creditCard: {enable: rawValue.paymentMethod.creditCard},
       },
       referenceId: localStorage.getItem('user_id')
     };
 
-    this.http.post<any>(url, payload).subscribe({
-      next: (data) => {
-        this.dialogRef.close(data);
-      },
+    this.http.post(url, payload).pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (data) => this.dialogRef.close(data),
       error: (err) => {
-        console.error('Error creating invoice', err);
+        Swal.fire({
+          title: 'Erro',
+          text: err?.error?.message ?? 'Erro ao criar cobrança',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
       }
     });
   }
 
-  getClientOptions() {
+  private getClientOptions(): void {
     const url = `${environment.apiUrl}/client/options`;
-
     this.http.get<any>(url).subscribe({
       next: (data) => {
-        const results = data ?? [];
-        setTimeout(() => {
-          this.clientOptions = results;
-        });
-      },
+        this.clientOptions = data ?? [];
+      }
     });
   }
 
-  getProductOptions() {
+  private getProductOptions(): void {
     const url = `${environment.apiUrl}/product/options`;
-
     this.http.get<any>(url).subscribe({
       next: (data) => {
-        const results = data ?? [];
-        setTimeout(() => {
-          this.productOptions = results;
-        });
-      },
+        this.productOptions = data ?? [];
+      }
     });
   }
 
-  uniqueProductValidator(control: AbstractControl): ValidationErrors | null {
+  private atLeastOnePaymentMethodValidator(control: AbstractControl): ValidationErrors | null {
+    const methods = control.value;
+    if (!methods) return null;
+    return methods.pix || methods.boleto || methods.creditCard ? null : {required: true};
+  }
+
+  private uniqueProductValidator(control: AbstractControl): ValidationErrors | null {
     if (!control.value) return null;
     const products = control.value;
-    const productIds = products.map((p: any) => p.productId).filter((id: any) => !!id);
-    const hasDuplicates = productIds.length !== new Set(productIds).size;
-    return hasDuplicates ? {duplicateProducts: true} : null;
+    const ids = products.map((p: any) => p._productId).filter((id: any) => !!id);
+    return ids.length === new Set(ids).size ? null : {duplicateProducts: true};
   }
 
-  get products() {
+  get products(): FormArray {
     return this.chargeForm.get('products') as FormArray;
   }
 
-  addProduct() {
+  addProduct(): void {
     this.products.push(new FormGroup({
-      productId: new FormControl('', [Validators.required]),
+      _productId: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
       name: new FormControl(''),
-      quantity: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
-      value: new FormControl<number>(0, [Validators.required, Validators.min(2)])
+      quantity: new FormControl<number>(1, {nonNullable: true, validators: [Validators.required, Validators.min(1)]}),
+      value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(2)]})
     }));
   }
 
-  removeProduct(index: number) {
+  removeProduct(index: number): void {
     this.products.removeAt(index);
   }
 
-  onProductChange(index: number, productId: string) {
+  onProductChange(index: number, productId: string): void {
     const product = this.productOptions.find(p => p.id === productId);
     if (product) {
       this.products.at(index).patchValue({
@@ -217,5 +201,4 @@ export class CreateChargeDialogComponent implements OnInit {
       });
     }
   }
-
 }

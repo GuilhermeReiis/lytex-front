@@ -21,7 +21,6 @@ import {ReactiveFormsModule, FormGroup, FormControl} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
-import {Router} from '@angular/router';
 
 @Component({
   standalone: true,
@@ -64,7 +63,6 @@ export class ListChargesComponent implements OnInit {
     private readonly http: HttpClient,
     private readonly dialog: MatDialog,
     private readonly cdr: ChangeDetectorRef,
-    private readonly router: Router,
   ) {
   }
 
@@ -77,8 +75,14 @@ export class ListChargesComponent implements OnInit {
   }
 
   openCreateChargeDialog(): void {
-    this.dialog.open(CreateChargeDialogComponent, {
+    const dialogRef = this.dialog.open(CreateChargeDialogComponent, {
       width: '600px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.getList(this.filterForm.value);
+      }
     });
   }
 

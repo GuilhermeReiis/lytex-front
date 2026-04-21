@@ -1,31 +1,58 @@
+.card-container {
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+}
+
 .form-class {
   display: flex;
   flex-direction: column;
-  margin: 5px;
+  gap: 12px;
+  padding: 8px;
+}
+
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-row {
+  display: flex;
   gap: 8px;
+  align-items: baseline;
 }
 
-.form-class mat-form-field {
-  width: 100%;
+.flex-1 {
+  flex: 1;
 }
 
-.example-right-align {
-  text-align: right;
+.flex-2 {
+  flex: 2;
 }
 
-input.example-right-align::-webkit-outer-spin-button,
-input.example-right-align::-webkit-inner-spin-button {
-  display: none;
+.payment-method {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-input.example-right-align {
-  -moz-appearance: textfield;
+.error {
+  font-size: 12px;
 }
 
 mat-card-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 0 16px 16px;
+  padding: 16px;
 }
-
