@@ -1,55 +1,75 @@
 <app-auth-card>
-  <form class="example-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-    <mat-form-field class="example-full-width">
-      <mat-label>Nome completo</mat-label>
-      <input matInput formControlName="name" placeholder="Ex. Guilherme G. Reis Alves">
-    </mat-form-field>
+  <div class="auth-container">
 
-    <mat-form-field class="example-full-width">
-      <mat-label>Email</mat-label>
-      <input type="email" matInput formControlName="email" placeholder="Ex. guilherme@lytex.com">
-      @if (registerForm.controls.email.hasError('email') && !registerForm.controls.email.hasError('required')) {
-        <mat-error>Por favor, insira um endereço de e-mail válido.</mat-error>
-      }
-      @if (registerForm.controls.email.hasError('required')) {
-        <mat-error>Email é <strong>obrigatório</strong></mat-error>
-      }
-    </mat-form-field>
+    @if (isLoading) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
 
-    <mat-form-field class="example-full-width">
-      <mat-label>Senha</mat-label>
-      <input matInput formControlName="password" [type]="hide() ? 'password' : 'text'"/>
-      <button
-        type="button"
-        matIconButton
-        matSuffix
-        (click)="clickEvent($event)"
-        [attr.aria-label]="'Ocultar Senha'"
-        [attr.aria-pressed]="hide()"
-      >
-        <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
-      </button>
-    </mat-form-field>
-    <mat-form-field class="example-full-width">
-      <mat-label>Confirmar Senha</mat-label>
-      <input matInput formControlName="confirm_password" [type]="hide() ? 'password' : 'text'"/>
-      <button
-        type="button"
-        matIconButton
-        matSuffix
-        (click)="clickEvent($event)"
-        [attr.aria-label]="'Ocultar Senha'"
-        [attr.aria-pressed]="hide()"
-      >
-        <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
-      </button>
-    </mat-form-field>
-    <mat-checkbox>
-      Aceito os termos de uso
-    </mat-checkbox>
-    <mat-card-actions class="actions-right">
-      <button type="button" matButton routerLink="/login">Voltar</button>
-      <button type="submit" matButton="filled" [disabled]="registerForm.invalid">Registrar</button>
-    </mat-card-actions>
-  </form>
+    <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <h2 class="title">Registrar</h2>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nome completo</mat-label>
+        <input matInput formControlName="name" placeholder="Seu nome completo"/>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email"/>
+
+        @if (registerForm.controls.email.hasError('email')) {
+          <mat-error>Email inválido</mat-error>
+        }
+        @if (registerForm.controls.email.hasError('required')) {
+          <mat-error>Email é obrigatório</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput formControlName="password" [type]="hide() ? 'password' : 'text'"/>
+
+        <button type="button" mat-icon-button matSuffix (click)="clickEvent($event)">
+          <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Confirmar Senha</mat-label>
+
+        <input
+          matInput
+          formControlName="confirm_password"
+          [type]="hide() ? 'password' : 'text'"
+        />
+
+        <button type="button" mat-icon-button matSuffix (click)="clickEvent($event)">
+          <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+
+        @if (registerForm.controls.confirm_password.hasError('passwordMismatch')) {
+          <mat-error>As senhas não coincidem</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="actions">
+        <button mat-button type="button" routerLink="/login">
+          Voltar
+        </button>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="registerForm.invalid || isLoading"
+        >
+          Registrar
+        </button>
+      </div>
+
+    </form>
+  </div>
 </app-auth-card>

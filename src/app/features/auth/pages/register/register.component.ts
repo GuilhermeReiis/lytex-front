@@ -1,4 +1,9 @@
-import {Component, signal} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  signal,
+  ChangeDetectorRef
+} from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -8,25 +13,35 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
-import {MatButton, MatIconButton} from '@angular/material/button';
-import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
-import {MatIcon} from '@angular/material/icon';
-import {MatCheckbox} from '@angular/material/checkbox';
-import {AuthCardComponent} from '../../components/auth-card/auth-card.component';
-import {MatCardActions} from '@angular/material/card';
 import {Router, RouterLink} from '@angular/router';
 import {HttpClient} from '@angular/common/http';
+import {finalize} from 'rxjs';
+
+import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatIconModule} from '@angular/material/icon';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatCardModule} from '@angular/material/card';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+
 import Swal from 'sweetalert2';
 
-const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const password = control.get('password')?.value;
-  const confirmPassword = control.get('confirm_password')?.value;
+import {AuthCardComponent} from '../../components/auth-card/auth-card.component';
 
-  if (!password || !confirmPassword) {
-    return null;
+const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const password = control.get('password');
+  const confirmPassword = control.get('confirm_password');
+
+  if (!password || !confirmPassword) return null;
+
+  if (password.value !== confirmPassword.value) {
+    confirmPassword.setErrors({passwordMismatch: true});
+    return {passwordMismatch: true};
   }
 
-  return password === confirmPassword ? null : {passwordMismatch: true};
+  confirmPassword.setErrors(null);
+  return null;
 };
 
 @Component({
@@ -35,44 +50,50 @@ const passwordMatchValidator: ValidatorFn = (control: AbstractControl): Validati
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
   imports: [
-    MatError,
-    MatFormField,
-    MatIcon,
-    MatIconButton,
-    MatInput,
-    MatLabel,
-    MatSuffix,
     ReactiveFormsModule,
-    MatCheckbox,
-    AuthCardComponent,
-    MatButton,
-    MatCardActions,
-    RouterLink
-  ]
+    RouterLink,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatCheckboxModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    AuthCardComponent
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
-  registerForm = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required]),
-    confirm_password: new FormControl('', [Validators.required]),
+  readonly hide = signal(true);
+
+  isLoading = false;
+
+  readonly registerForm = new FormGroup({
+    name: new FormControl<string>('', {nonNullable: true, validators: [Validators.required]}),
+    email: new FormControl<string>('', {nonNullable: true, validators: [Validators.required, Validators.email]}),
+    password: new FormControl<string>('', {nonNullable: true, validators: [Validators.required]}),
+    confirm_password: new FormControl<string>('', {nonNullable: true, validators: [Validators.required]}),
   }, {validators: passwordMatchValidator});
 
-  constructor(private readonly http: HttpClient, private readonly router: Router) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef
+  ) {
   }
 
-  hide = signal(true);
-
-  clickEvent(event: MouseEvent) {
-    this.hide.set(!this.hide());
+  clickEvent(event: MouseEvent): void {
     event.stopPropagation();
+    this.hide.update(v => !v);
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
     }
+
+    this.isLoading = true;
 
     const {name, email, password} = this.registerForm.getRawValue();
 
@@ -80,8 +101,13 @@ export class RegisterComponent {
       name,
       email,
       password
-    }).subscribe({
-      next: (res) => {
+    }).pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: () => {
         Swal.fire({
           title: 'Sucesso!',
           text: 'Usuário criado com sucesso',
@@ -94,7 +120,7 @@ export class RegisterComponent {
       error: (err) => {
         Swal.fire({
           title: 'Erro',
-          text: err.error.message,
+          text: err?.error?.message ?? 'Erro ao registrar',
           icon: 'error',
           confirmButtonText: 'OK'
         });
