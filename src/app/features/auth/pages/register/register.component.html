@@ -1,0 +1,55 @@
+<app-auth-card>
+  <form class="example-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <mat-form-field class="example-full-width">
+      <mat-label>Nome completo</mat-label>
+      <input matInput formControlName="name" placeholder="Ex. Guilherme G. Reis Alves">
+    </mat-form-field>
+
+    <mat-form-field class="example-full-width">
+      <mat-label>Email</mat-label>
+      <input type="email" matInput formControlName="email" placeholder="Ex. guilherme@lytex.com">
+      @if (registerForm.controls.email.hasError('email') && !registerForm.controls.email.hasError('required')) {
+        <mat-error>Por favor, insira um endereço de e-mail válido.</mat-error>
+      }
+      @if (registerForm.controls.email.hasError('required')) {
+        <mat-error>Email é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="example-full-width">
+      <mat-label>Senha</mat-label>
+      <input matInput formControlName="password" [type]="hide() ? 'password' : 'text'"/>
+      <button
+        type="button"
+        matIconButton
+        matSuffix
+        (click)="clickEvent($event)"
+        [attr.aria-label]="'Ocultar Senha'"
+        [attr.aria-pressed]="hide()"
+      >
+        <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+    <mat-form-field class="example-full-width">
+      <mat-label>Confirmar Senha</mat-label>
+      <input matInput formControlName="confirm_password" [type]="hide() ? 'password' : 'text'"/>
+      <button
+        type="button"
+        matIconButton
+        matSuffix
+        (click)="clickEvent($event)"
+        [attr.aria-label]="'Ocultar Senha'"
+        [attr.aria-pressed]="hide()"
+      >
+        <mat-icon>{{ hide() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+    <mat-checkbox>
+      Aceito os termos de uso
+    </mat-checkbox>
+    <mat-card-actions class="actions-right">
+      <button type="button" matButton routerLink="/login">Voltar</button>
+      <button type="submit" matButton="filled" [disabled]="registerForm.invalid">Registrar</button>
+    </mat-card-actions>
+  </form>
+</app-auth-card>

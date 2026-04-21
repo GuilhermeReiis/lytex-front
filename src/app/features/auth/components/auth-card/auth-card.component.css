@@ -1,0 +1,15 @@
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(0, 76, 255);
+}
+
+mat-card {
+  width: 400px;
+}
+
+mat-card-header {
+  margin-bottom: 20px;
+}

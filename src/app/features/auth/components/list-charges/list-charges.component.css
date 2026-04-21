@@ -1,0 +1,12 @@
+table {
+  width: 100%;
+}
+
+mat-card {
+  margin: 20px;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: end;
+}

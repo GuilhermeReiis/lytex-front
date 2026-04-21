@@ -1,0 +1,74 @@
+<app-auth-card>
+  <div class="auth-container">
+
+    @if (isLoading) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <form
+      class="auth-form"
+      [formGroup]="loginForm"
+      (ngSubmit)="onSubmit()"
+    >
+      <h2 class="title">Entrar</h2>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          placeholder="seu@email.com"
+        />
+
+        @if (loginForm.controls.email.hasError('email') && !loginForm.controls.email.hasError('required')) {
+          <mat-error>Email inválido</mat-error>
+        }
+
+        @if (loginForm.controls.email.hasError('required')) {
+          <mat-error>Email é obrigatório</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+
+        <input
+          matInput
+          formControlName="password"
+          [type]="hide() ? 'password' : 'text'"
+        />
+
+        <button
+          type="button"
+          mat-icon-button
+          matSuffix
+          (click)="togglePasswordVisibility($event)"
+          aria-label="Toggle password"
+        >
+          <mat-icon>
+            {{ hide() ? 'visibility_off' : 'visibility' }}
+          </mat-icon>
+        </button>
+      </mat-form-field>
+
+      <div class="actions">
+        <button mat-button type="button" routerLink="/register">
+          Criar conta
+        </button>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading"
+        >
+          Entrar
+        </button>
+      </div>
+    </form>
+
+  </div>
+</app-auth-card>

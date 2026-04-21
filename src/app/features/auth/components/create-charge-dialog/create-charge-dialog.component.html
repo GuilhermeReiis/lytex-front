@@ -1,0 +1,90 @@
+<mat-card appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>Crie uma cobrança</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form class="form-class" [formGroup]="chargeForm">
+      <mat-form-field>
+        <mat-label>Cliente</mat-label>
+        <mat-select formControlName="clientId">
+          @for (client of clientOptions; track client) {
+            <mat-option [value]="client.id">{{ client.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div formArrayName="products">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0;">Produtos</h3>
+          <button mat-button type="button" (click)="addProduct()" [disabled]="products.invalid">Adicionar Produto
+          </button>
+        </div>
+
+        @for (productGroup of products.controls; track $index) {
+          <div [formGroupName]="$index" style="display: flex; gap: 8px; align-items: baseline;">
+            <mat-form-field style="flex: 2;">
+              <mat-label>Produto</mat-label>
+              <mat-select formControlName="_productId" (selectionChange)="onProductChange($index, $event.value)">
+                @for (product of productOptions; track product) {
+                  <mat-option [value]="product.id">{{ product.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field style="flex: 1;">
+              <mat-label>Quantidade</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1"/>
+            </mat-form-field>
+
+            <mat-form-field style="flex: 1;">
+              <mat-label>Valor</mat-label>
+              <input matInput type="number" formControlName="value" min="2"/>
+              <span matTextPrefix>R$&nbsp;</span>
+            </mat-form-field>
+
+            @if (products.length > 1) {
+              <button mat-icon-button color="warn" type="button" (click)="removeProduct($index)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      @if (chargeForm.get('products')?.hasError('duplicateProducts')) {
+        <mat-error style="font-size: 12px; margin-bottom: 8px;">Os produtos não podem ser repetidos.</mat-error>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Data de vencimento</mat-label>
+        <input matInput [matDatepicker]="datepicker" formControlName="dueDate"/>
+        <mat-hint>DD/MM/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="datepicker"></mat-datepicker-toggle>
+        <mat-datepicker #datepicker>
+          <mat-datepicker-actions>
+            <button matButton matDatepickerCancel>Cancelar</button>
+            <button matButton="elevated" matDatepickerApply>Aplicar</button>
+          </mat-datepicker-actions>
+        </mat-datepicker>
+      </mat-form-field>
+
+      <section formGroupName="paymentMethod">
+        <mat-label>Método de pagamento:</mat-label>
+        <mat-checkbox formControlName="pix">Pix</mat-checkbox>
+        <mat-checkbox formControlName="boleto">Boleto</mat-checkbox>
+        <mat-checkbox formControlName="creditCard">Cartão de crédito</mat-checkbox>
+        @if (chargeForm.get('paymentMethod')?.hasError('required') && chargeForm.get('paymentMethod')?.touched) {
+          <mat-error style="font-size: 12px;">Selecione pelo menos um método de pagamento.</mat-error>
+        }
+      </section>
+
+    </form>
+  </mat-card-content>
+  <mat-card-footer>
+    <button matButton="filled" (click)="confirm()" [disabled]="chargeForm.invalid">
+      <mat-icon>add</mat-icon>
+      Salvar
+    </button>
+    <button matButton (click)="close()">Cancelar</button>
+  </mat-card-footer>
+</mat-card>
