@@ -21,6 +21,7 @@ import {ReactiveFormsModule, FormGroup, FormControl} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
+import {MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 
 @Component({
   standalone: true,
@@ -39,7 +40,8 @@ import {MatSelectModule} from '@angular/material/select';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatPaginatorModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -47,6 +49,10 @@ export class ListChargesComponent implements OnInit {
   displayedColumns: string[] = ['position', 'client', 'status', 'totalValue', 'createdAt', 'actions'];
   dataSource: any[] = [];
   isLoading = false;
+  pageIndex = 0;
+  pageSize = 10;
+  totalItems = 0;
+  readonly pageSizeOptions = [5, 10, 25, 50];
 
   statusMap: Record<string, string> = {
     canceled: 'Cancelado',
@@ -71,6 +77,7 @@ export class ListChargesComponent implements OnInit {
   }
 
   search(): void {
+    this.pageIndex = 0;
     this.getList(this.filterForm.value);
   }
 
@@ -81,6 +88,7 @@ export class ListChargesComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
+        this.pageIndex = 0;
         this.getList(this.filterForm.value);
       }
     });
@@ -91,6 +99,12 @@ export class ListChargesComponent implements OnInit {
       width: '600px',
       data: charge
     });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.getList(this.filterForm.value);
   }
 
   openCheckout(url: any): void {
@@ -106,7 +120,9 @@ export class ListChargesComponent implements OnInit {
     let params = new HttpParams()
       .set('sortOrder', 'DESC')
       .set('sortField', 'createdAt')
-      .set('referenceId', userIdLogged ?? '');
+      .set('referenceId', userIdLogged ?? '')
+      .set('page', String(this.pageIndex + 1))
+      .set('perPage', String(this.pageSize));
 
     Object.keys(filters).forEach(key => {
       const value = filters[key];
@@ -123,6 +139,17 @@ export class ListChargesComponent implements OnInit {
     ).subscribe({
       next: (data) => {
         this.dataSource = data?.results ?? [];
+
+        const paginate = data?.paginate;
+        this.totalItems = paginate?.total ?? data?.total ?? data?.count ?? this.dataSource.length;
+
+        if (paginate?.perPage) {
+          this.pageSize = paginate.perPage;
+        }
+
+        if (paginate?.page) {
+          this.pageIndex = Math.max(paginate.page - 1, 0);
+        }
       },
       error: () => {
       }

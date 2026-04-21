@@ -100,5 +100,15 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
 
+    <mat-paginator
+      [length]="totalItems"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="pageSizeOptions"
+      [disabled]="isLoading"
+      showFirstLastButtons
+      (page)="onPageChange($event)">
+    </mat-paginator>
+
   </div>
 </mat-card>
