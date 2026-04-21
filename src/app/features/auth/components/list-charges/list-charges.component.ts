@@ -95,9 +95,16 @@ export class ListChargesComponent implements OnInit {
   }
 
   openManualLiquidateDialog(charge: any): void {
-    this.dialog.open(ManualLiquidateDialogComponent, {
+    const dialogRef = this.dialog.open(ManualLiquidateDialogComponent, {
       width: '600px',
       data: charge
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.pageIndex = 0;
+        this.getList(this.filterForm.value);
+      }
     });
   }
 
