@@ -3,7 +3,6 @@ import {Injectable} from '@angular/core';
 @Injectable({providedIn: 'root'})
 export class TokenService {
   private readonly key = 'auth_token';
-  private readonly lytexKey = 'lytex_auth_token'
   private readonly userID = 'user_id'
 
 
@@ -21,7 +20,6 @@ export class TokenService {
 
   remove() {
     localStorage.removeItem(this.key);
-    localStorage.removeItem(this.lytexKey);
     localStorage.removeItem(this.userID);
   }
 

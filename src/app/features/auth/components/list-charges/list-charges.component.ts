@@ -34,16 +34,7 @@ export class ListChargesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getAuthToken()
     this.getList()
-  }
-
-  async getAuthToken(): Promise<any> {
-    const url = `${environment.apiSandBoxUrl}/v2/auth/obtain_token`
-    return this.http.post<any>(url, {
-      clientId: environment.clientId,
-      clientSecret: environment.clientSecret
-    })
   }
 
   openCreateChargeDialog() {

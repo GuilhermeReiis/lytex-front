@@ -91,8 +91,7 @@ export class LoginComponent {
       next: (res) => {
         this.tokenService.set(res.access_token);
         this.tokenService.set(res.user_id, 'user_id');
-
-        this.getLytexAuthToken();
+        
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
@@ -101,35 +100,6 @@ export class LoginComponent {
           text: err?.error?.message ?? 'Erro ao realizar login',
           icon: 'error',
           confirmButtonText: 'OK'
-        });
-      }
-    });
-  }
-
-  private getLytexAuthToken(): void {
-    const url = `${environment.apiSandBoxUrl}/v2/auth/obtain_token`;
-
-    this.http.post<{
-      accessToken: string;
-      refreshToken: string;
-      expireAt: Date;
-      refreshExpireAt: Date;
-    }>(url, {
-      clientId: environment.clientId,
-      clientSecret: environment.clientSecret
-    }).subscribe({
-      next: (res) => {
-        this.tokenService.set(res.accessToken, 'lytex_auth_token');
-      },
-      error: () => {
-        Swal.fire({
-          title: 'Erro',
-          text: 'Não foi possível obter o token da Lytex. Faça login novamente.',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        }).then(() => {
-          this.tokenService.remove();
-          this.router.navigate(['/login']);
         });
       }
     });
