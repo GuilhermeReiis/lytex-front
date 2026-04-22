@@ -57,6 +57,7 @@ export class ListChargesComponent implements OnInit {
   statusMap: Record<string, string> = {
     canceled: 'Cancelado',
     waitingPayment: 'Aguardando pagamento',
+    overdue: 'Vencido',
     paid: 'Pago'
   };
 
@@ -165,5 +166,9 @@ export class ListChargesComponent implements OnInit {
 
   getStatusLabel(status: string): string {
     return this.statusMap[status] ?? status;
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'overduo' ? 'overdue' : status;
   }
 }

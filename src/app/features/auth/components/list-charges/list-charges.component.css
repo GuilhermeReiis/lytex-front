@@ -59,6 +59,11 @@ mat-card-header {
   color: #ed6c02;
 }
 
+.status.overdue {
+  background: #f3e5f5;
+  color: #8e24aa;
+}
+
 .status.canceled {
   background: #fdecea;
   color: #d32f2f;
