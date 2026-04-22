@@ -1,59 +1,81 @@
-# LytexFront
+# Lytex Front
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Aplicacao front-end em Angular para autenticacao de usuarios e gestao de cobrancas.
 
-## Development server
+## Visao geral
 
-To start a local development server, run:
+- Stack principal: Angular 21, Angular Material e RxJS.
+- Fluxos principais: login, cadastro, dashboard e listagem/acao de cobrancas.
+- Seguranca: `authGuard` para proteger rotas e `authInterceptor` para enviar token Bearer.
 
-```bash
-ng serve
-```
+## Requisitos
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Node.js LTS (recomendado: 20+)
+- npm (o projeto usa `npm@10.8.2`)
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Instalacao
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
-
-To build the project run:
+## Executando o projeto
 
 ```bash
-ng build
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+- A aplicacao sobe em `http://localhost:4200/` por padrao.
+- A API base local esta configurada em `src/environments/environment.ts` como `http://localhost:3000`.
 
-## Running unit tests
+## Scripts disponiveis
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+- `npm start`: inicia servidor de desenvolvimento (`ng serve`).
+- `npm run build`: gera build de producao em `dist/`.
+- `npm run watch`: build em modo watch para desenvolvimento.
+- `npm test`: executa testes unitarios.
+
+## Estrutura do projeto
+
+```text
+src/
+  app/
+	core/
+	  guards/
+	  interceptors/
+	  services/
+	features/
+	  auth/
+		components/
+		pages/
+	app.routes.ts
+  environments/
+	environment.ts
+```
+
+## Ambiente e configuracao
+
+- Arquivo de ambiente atual: `src/environments/environment.ts`.
+- Campo principal: `apiUrl`, utilizado para chamadas HTTP ao backend.
+- Antes de subir em homologacao/producao, ajuste a URL da API conforme o ambiente.
+
+## Build e deploy
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+- O artefato final fica em `dist/`.
+- Configure o servidor web para servir SPA (fallback para `index.html`).
 
-For end-to-end (e2e) testing, run:
+## Troubleshooting
 
-```bash
-ng e2e
-```
+- Erro de CORS ou `401`: valide se a API esta ativa em `apiUrl` e se o token foi salvo no `localStorage`.
+- Redirecionamento para `/login`: confirme se o token existe (rota `/dashboard` usa `authGuard`).
+- Header `Authorization` ausente: verifique o `authInterceptor` e se o token esta armazenado corretamente.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Tecnologias
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Angular
+- Angular Material
+- TypeScript
