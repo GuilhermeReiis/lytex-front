@@ -68,12 +68,6 @@ npm run build
 - O artefato final fica em `dist/`.
 - Configure o servidor web para servir SPA (fallback para `index.html`).
 
-## Troubleshooting
-
-- Erro de CORS ou `401`: valide se a API esta ativa em `apiUrl` e se o token foi salvo no `localStorage`.
-- Redirecionamento para `/login`: confirme se o token existe (rota `/dashboard` usa `authGuard`).
-- Header `Authorization` ausente: verifique o `authInterceptor` e se o token esta armazenado corretamente.
-
 ## Tecnologias
 
 - Angular
