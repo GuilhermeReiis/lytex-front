@@ -67,7 +67,7 @@ export class CreateChargeDialogComponent implements OnInit {
         _productId: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
         name: new FormControl(''),
         quantity: new FormControl<number>(1, {nonNullable: true, validators: [Validators.required, Validators.min(1)]}),
-        value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(2)]})
+        value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(0.02)]})
       })
     ], {validators: [this.uniqueProductValidator.bind(this)]}),
     dueDate: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
@@ -116,7 +116,10 @@ export class CreateChargeDialogComponent implements OnInit {
 
     const payload = {
       _clientId: rawValue.clientId,
-      items: rawValue.products,
+      items: rawValue.products.map((item) => ({
+        ...item,
+        value: this.toCents(item.value)
+      })),
       dueDate: formattedDueDate,
       paymentMethods: {
         pix: {enable: rawValue.paymentMethod.pix},
@@ -184,7 +187,7 @@ export class CreateChargeDialogComponent implements OnInit {
       _productId: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
       name: new FormControl(''),
       quantity: new FormControl<number>(1, {nonNullable: true, validators: [Validators.required, Validators.min(1)]}),
-      value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(2)]})
+      value: new FormControl<number>(0, {nonNullable: true, validators: [Validators.required, Validators.min(0.02)]})
     }));
   }
 
@@ -196,9 +199,17 @@ export class CreateChargeDialogComponent implements OnInit {
     const product = this.productOptions.find(p => p.id === productId);
     if (product) {
       this.products.at(index).patchValue({
-        value: product.value,
+        value: this.toReal(product.value),
         name: product.name
       });
     }
+  }
+
+  private toReal(valueInCents: number): number {
+    return valueInCents / 100;
+  }
+
+  private toCents(valueInReais: number): number {
+    return Math.round(valueInReais * 100);
   }
 }
